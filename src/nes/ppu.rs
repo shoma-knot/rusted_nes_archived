@@ -1,36 +1,35 @@
-use std::{io::Read, mem, ptr};
+use std::{convert::TryInto, io::Read, mem, ptr};
 
 pub struct Ppu {
-    sprite: [Sprite; 256],
+    memory: [u8; 0x4000],
+    ptr: usize,
+    io_mirror: [u8; 0x8],
 }
 
 impl Ppu {
-    // TODO: スプライト初期化方法をもう少し考える
-    pub fn new(data: &[u8]) -> Ppu {
-        let mut sprites: [Sprite; 256];
-        unsafe {
-            sprites = mem::MaybeUninit::uninit().assume_init();
-            for i in 0..data.len() / 16 {
-                ptr::write(&mut sprites[i], Sprite::new(&data[i * 16..(i + 1) * 16]));
-            }
-        }
-
-        return Ppu { sprite: sprites };
+    pub fn new() -> Self {
+        return Ppu {
+            memory: [0; 0x4000],
+            ptr: 0x0000,
+            io_mirror: [0; 0x8],
+        };
     }
-}
 
-pub struct Sprite {
-    byte: [u8; 16],
-}
-
-impl Sprite {
-    pub fn new(mut data: &[u8]) -> Sprite {
-        if data.len() != 16 {
-            panic!("スプライトのサイズが不正です")
+    pub fn update(&mut self, io: &[u8; 8]) {
+        // 0x2006への書き込みがなされたら
+        if io[6] != 0 {
+            self.ptr &= 0x00ff;
+            self.ptr <<= 8;
+            self.ptr += io[6] as usize;
         }
-        let mut byte: [u8; 16] = [0; 16];
-        data.read_exact(&mut byte)
-            .expect("スプライト作成に失敗しました");
-        return Sprite { byte: byte };
+        // 0x2007への書き込みがなされたら
+        if io[7] != 0 {
+            self.memory[self.ptr] = io[7];
+            self.ptr += 1;
+        }
+    }
+
+    pub fn getMemory(&self, start: usize, end: usize) -> &[u8] {
+        return &self.memory[start..end];
     }
 }
