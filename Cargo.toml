@@ -1,10 +1,9 @@
 [package]
 name = "rusted_nes"
 version = "0.1.0"
-authors = ["Saginoya-nm7 <sqrt.trill425@gmail.com>"]
+authors = ["s-ktmy <sqrt.trill425@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-lazy_static = "1.4.0"
