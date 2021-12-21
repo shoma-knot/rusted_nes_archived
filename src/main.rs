@@ -1,4 +1,4 @@
-extern crate lazy_static;
+extern crate piston_window;
 
 mod nes;
 use nes::Nes;

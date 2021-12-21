@@ -46,8 +46,14 @@ impl Nes {
         let units_prg = buf[4] as u16;
         let units_chr = buf[5] as u16;
 
-        self.ram
-            .readPRGROM(&buf[0x10..(0x10 + units_prg * 0x4000) as usize]);
+        let prg_start = 0x10 as usize;
+        let prg_end = prg_start + units_prg as usize * 0x4000;
+        let chr_start = prg_end;
+        let chr_end = chr_start + units_chr as usize * 0x2000;
+
+        self.ram.readPRGROM(&buf[prg_start..prg_end]);
+
+        self.ppu.read_chr_rom(&buf[chr_start..chr_end]);
     }
 
     pub fn read_pc_data(&self, offset: usize) -> u8 {
@@ -55,8 +61,7 @@ impl Nes {
     }
 
     /** 命令を読み出し、実行します */
-    pub fn exec(&mut self) -> bool {
-        let mut f = false;
+    pub fn exec(&mut self) {
         let opecode = self.read_pc_data(0);
         let operand = self.opecode_dict.searchOpecode(&opecode);
 
@@ -67,7 +72,6 @@ impl Nes {
                     let addr: usize = ((self.read_pc_data(2) as u16) << 8) as usize
                         + self.read_pc_data(1) as usize;
                     self.register.set_pc(addr);
-                    f = true;
                 }
                 _ => panic!("未実装の関数です"),
             },
@@ -181,8 +185,6 @@ impl Nes {
                 _ => panic!("未実装の関数です"),
             },
         }
-
-        return f;
     }
 
     fn get_ppu_io(&self) -> [u8; 8] {
@@ -203,9 +205,11 @@ impl Nes {
         }
         */
 
-        while !self.exec() {
+        loop {
+            self.exec();
             self.ppu.update(&self.get_ppu_io());
             self.ppu_io_reset();
+            self.ppu.draw();
         }
 
         println!("{:?}", self.ppu.getMemory(0x21C9, 0x21C9 + 13));
