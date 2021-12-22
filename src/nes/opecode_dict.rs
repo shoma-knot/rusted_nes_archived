@@ -20,7 +20,7 @@ impl OpecodeDict {
         return OpecodeDict { table: table };
     }
 
-    pub fn searchOpecode(&self, opecode: &u8) -> Opecode {
+    pub fn search_opecode(&self, opecode: &u8) -> Opecode {
         let v: Opecode = match self.table.get(opecode) {
             Some(v) => v.clone(),
             None => {
@@ -86,21 +86,6 @@ impl Clone for OpecodeName {
             Self::BNE => Self::BNE,
         }
     }
-
-    fn clone_from(&mut self, source: &Self) {
-        match self {
-            Self::JMP => Self::JMP,
-            Self::SEI => Self::SEI,
-            Self::DEY => Self::DEY,
-            Self::TSX => Self::TSX,
-            Self::LDY => Self::LDY,
-            Self::LDX => Self::LDX,
-            Self::LDA => Self::LDA,
-            Self::STA => Self::STA,
-            Self::INX => Self::INX,
-            Self::BNE => Self::BNE,
-        };
-    }
 }
 
 pub enum AddressingMode {
@@ -112,7 +97,7 @@ pub enum AddressingMode {
 }
 
 impl AddressingMode {
-    pub fn getOperandNum(&self) -> usize {
+    pub fn get_operand_num(&self) -> usize {
         return match self {
             AddressingMode::IMP => 1,
             AddressingMode::IMD => 2,
@@ -132,15 +117,5 @@ impl Clone for AddressingMode {
             Self::ABS => Self::ABS,
             Self::ABX => Self::ABX,
         }
-    }
-
-    fn clone_from(&mut self, source: &Self) {
-        match self {
-            Self::IMP => Self::IMP,
-            Self::IMD => Self::IMD,
-            Self::REL => Self::REL,
-            Self::ABS => Self::ABS,
-            Self::ABX => Self::ABX,
-        };
     }
 }

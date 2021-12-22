@@ -71,10 +71,6 @@ impl Register {
         return self.sp;
     }
 
-    pub fn set_sp(&mut self, value: u8) {
-        self.sp = value;
-    }
-
     pub fn set_n(&mut self, value: bool) {
         self.ps.set_n(value);
     }
@@ -92,6 +88,7 @@ impl Register {
     }
 }
 
+#[allow(dead_code)]
 struct ProcessorStatusRegister {
     n: bool,
     v: bool,

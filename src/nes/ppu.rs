@@ -24,12 +24,12 @@ impl Ppu {
         };
     }
 
-    pub fn read_chr_rom(&mut self, data: &[u8]) {
-        self.images = Ppu::createImageArray(data);
+    pub fn read_chr_rom(&mut self, chr: &[u8]) {
+        self.images = Ppu::create_image_array(chr);
         println!("H: {:?}", self.images[0x48].dot)
     }
 
-    fn createImageArray(data: &[u8]) -> [NesImage; 512] {
+    fn create_image_array(data: &[u8]) -> [NesImage; 512] {
         let mut images = [NesImage::empty(); 512];
         if data.len() > 512 * 16 {
             panic!("キャラクタデータが大きすぎます");
@@ -56,21 +56,17 @@ impl Ppu {
         }
     }
 
-    pub fn getMemory(&self, start: usize, end: usize) -> &[u8] {
+    pub fn get_memory(&self, start: usize, end: usize) -> &[u8] {
         return &self.memory[start..end];
     }
 
-    pub fn get_u8(&self, index: usize) -> u8 {
-        return self.memory[index];
-    }
-
-    pub fn getNesImage(&self, index: usize) -> &NesImage {
+    fn get_nes_image(&self, index: usize) -> &NesImage {
         return &self.images[index];
     }
 
     pub fn draw(&mut self) {
         println!("draw!");
-        let name_table: [u8; 0x03C0] = self.getMemory(0x2000, 0x23C0).try_into().unwrap();
+        let name_table: [u8; 0x03C0] = self.get_memory(0x2000, 0x23C0).try_into().unwrap();
         let color: [[f32; 4]; 4] = [
             [0.00, 0.00, 0.00, 1.00],
             [0.33, 0.33, 0.33, 1.00],
@@ -84,7 +80,7 @@ impl Ppu {
             let x = i % 32;
             let y = i / 32;
 
-            let image = self.getNesImage(name_table[i] as usize);
+            let image = self.get_nes_image(name_table[i] as usize);
 
             for px in 0..8 {
                 for py in 0..8 {
@@ -143,10 +139,6 @@ impl Clone for NesImage {
         Self {
             dot: self.dot.clone(),
         }
-    }
-
-    fn clone_from(&mut self, source: &Self) {
-        self.dot = self.dot.clone();
     }
 }
 
