@@ -198,13 +198,6 @@ impl Nes {
     }
 
     pub fn run(&mut self) {
-        /*
-        loop {
-            self.exec();
-            self.ppu.update(&self.get_ppu_io());
-        }
-        */
-
         loop {
             self.exec();
             self.ppu.update(&self.get_ppu_io());
