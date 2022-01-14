@@ -1,12 +1,15 @@
+extern crate image;
+
 use core::panic;
 use std::convert::TryInto;
 
-use piston_window::*;
+use image::RgbaImage;
+use piston_window::{Texture, TextureSettings};
 
 pub struct Ppu {
     memory: [u8; 0x4000],
     ptr: usize,
-    window: PistonWindow,
+    window: piston_window::PistonWindow,
     images: [NesImage; 512],
 }
 
@@ -15,7 +18,7 @@ impl Ppu {
         return Ppu {
             memory: [0; 0x4000],
             ptr: 0x0000,
-            window: WindowSettings::new("Hello, World!", [256, 240])
+            window: piston_window::WindowSettings::new("Hello, World!", [256, 240])
                 .exit_on_esc(true)
                 .resizable(false)
                 .build()
@@ -65,17 +68,15 @@ impl Ppu {
     }
 
     pub fn draw(&mut self) {
-        println!("draw!");
         let name_table: [u8; 0x03C0] = self.get_memory(0x2000, 0x23C0).try_into().unwrap();
-        let color: [[f32; 4]; 4] = [
-            [0.00, 0.00, 0.00, 1.00],
-            [0.33, 0.33, 0.33, 1.00],
-            [0.66, 0.66, 0.66, 1.00],
-            [1.00, 1.00, 1.00, 1.00],
+        let color: [[u8; 4]; 4] = [
+            [0x00, 0x00, 0x00, 0xff],
+            [0x55, 0x55, 0x55, 0xff],
+            [0xaa, 0xaa, 0xaa, 0xff],
+            [0xff, 0xff, 0xff, 0xff],
         ];
 
-        let mut dot: [[u8; 240]; 256] = [[0; 240]; 256];
-
+        let mut tex = RgbaImage::new(256, 240);
         for i in 0..0x03C0 {
             let x = i % 32;
             let y = i / 32;
@@ -84,10 +85,25 @@ impl Ppu {
 
             for px in 0..8 {
                 for py in 0..8 {
-                    dot[x * 8 + px][y * 8 + py] = image.dot[px][py];
+                    /*
+                    img.put_pixel(
+                        (x * 8 + px) as u32,
+                        (y * 8 + py) as u32,
+                        Rgba(color[image.dot[px][py] as usize]),
+                    );
+                    */
+                    tex.get_pixel_mut((x * 8 + px) as u32, (y * 8 + py) as u32)
+                        .0 = color[image.dot[px][py] as usize];
                 }
             }
         }
+
+        let img = Texture::from_image(
+            &mut self.window.create_texture_context(),
+            &tex,
+            &TextureSettings::new(),
+        )
+        .unwrap();
 
         let ev = match self.window.next() {
             Some(v) => v,
@@ -96,17 +112,8 @@ impl Ppu {
             }
         };
         self.window.draw_2d(&ev, |context, graphics, _devices| {
-            clear([0.0; 4], graphics);
-            for px in 0..256 {
-                for py in 0..240 {
-                    rectangle(
-                        color[dot[px][py] as usize],
-                        [px as f64, py as f64, px as f64 + 1.0, py as f64 + 1.0],
-                        context.transform,
-                        graphics,
-                    );
-                }
-            }
+            piston_window::clear([0.0; 4], graphics);
+            piston_window::image(&img, context.transform, graphics);
         });
     }
 }
